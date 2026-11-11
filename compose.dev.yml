@@ -1,0 +1,76 @@
+name: istay-dev
+x-api: &api
+  build: ./backend
+  environment: &api-env
+    ENVIRONMENT: development
+    POSTGRES_HOST: db
+    POSTGRES_DB: ${POSTGRES_DB:?Use --env-file .env.dev}
+    POSTGRES_USER: ${POSTGRES_USER:?Use --env-file .env.dev}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set development password}
+    APP_ORIGIN: ${APP_ORIGIN:-http://localhost:8081}
+    TRUSTED_HOSTS: localhost,127.0.0.1,api
+    SECURE_COOKIES: 'false'
+  networks: [private]
+services:
+  test-db:
+    profiles: [test]
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: istay_test
+      POSTGRES_USER: istay_test
+      POSTGRES_PASSWORD: disposable-test-only
+    tmpfs: [/var/lib/postgresql/data]
+    networks: [private]
+    healthcheck:
+      test: [CMD, pg_isready, -U, istay_test, -d, istay_test]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  tests:
+    profiles: [test]
+    build: {context: ., dockerfile: backend/Dockerfile.test}
+    environment:
+      ENVIRONMENT: test
+      TEST_POSTGRES_URL: postgresql+psycopg://istay_test:disposable-test-only@test-db/istay_test
+    networks: [private]
+    depends_on:
+      test-db: {condition: service_healthy}
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set database}
+      POSTGRES_USER: ${POSTGRES_USER:?Set user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set password}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    networks: [private]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    <<: *api
+    command: [alembic, upgrade, head]
+    depends_on:
+      db: {condition: service_healthy}
+  api:
+    <<: *api
+    command: [uvicorn, app.main:app, --host, 0.0.0.0, --port, '8000', --reload, --no-proxy-headers, --no-access-log]
+    volumes: ['./backend/app:/app/app:ro']
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      db: {condition: service_healthy}
+  frontend:
+    build: {context: ./frontend, target: dev}
+    volumes: ['./frontend/src:/app/src:ro']
+    networks: [private]
+  web:
+    image: nginxinc/nginx-unprivileged:stable-alpine
+    volumes: ['./ops/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro']
+    ports: ['127.0.0.1:8081:8080']
+    networks: [private]
+    depends_on: [api, frontend]
+volumes:
+  pgdata:
+networks:
+  private:

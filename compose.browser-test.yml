@@ -1,0 +1,11 @@
+# Disposable browser acceptance stack. Start with -p istay-browser-test and .env.browser-test.
+services:
+  api:
+    environment:
+      APP_ORIGIN: http://localhost:8082
+  web:
+    image: ${BROWSER_WEB_IMAGE:?Set a built static PWA image}
+    volumes: !reset []
+    ports: !override ['127.0.0.1:8082:8080']
+    depends_on: !override
+      api: {condition: service_healthy}

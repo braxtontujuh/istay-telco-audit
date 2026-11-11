@@ -1,0 +1,7 @@
+# Temporary localhost-only production staging while the external hostname is deferred.
+services:
+  web:
+    ports: !override ['127.0.0.1:8444:8444']
+    volumes:
+      - ./ops/nginx.local-staging.conf:/etc/nginx/conf.d/local-staging-tls.conf:ro
+      - ./secrets/local-staging-tls:/etc/nginx/local-staging-tls:ro

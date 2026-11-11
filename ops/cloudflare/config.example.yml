@@ -1,0 +1,8 @@
+# Reference for the equivalent LOCAL-MANAGED tunnel only.
+# The provided Compose profile uses a DASHBOARD-MANAGED token instead of this file.
+tunnel: YOUR-TUNNEL-UUID
+credentials-file: /run/secrets/tunnel_credentials.json
+ingress:
+  - hostname: audit.your-domain.example
+    service: http://web:8080
+  - service: http_status:404

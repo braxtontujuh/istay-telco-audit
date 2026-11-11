@@ -1,0 +1,16 @@
+{
+  "verified_local_date": "2026-11-12",
+  "host_boot_local": "2026-11-11T23:44:42.5000000+08:00",
+  "startup_task_run_local": "2026-11-11T23:44:55+08:00",
+  "startup_task": "IStay-Production-AtLogon",
+  "startup_task_result": 0,
+  "project": "istay-prod",
+  "database_volume": "istay-prod_pgdata",
+  "services_healthy": ["api", "backup", "db", "web"],
+  "post_boot_https_auth_csrf_logout": "passed with explicit client CA trust and disposable account; no container restarts performed",
+  "scheduled_backup": "istay-20261111T190029Z.dump",
+  "scheduled_backup_completed_local": "2026-11-12T03:00:30+08:00",
+  "scheduled_backup_checksum_and_scratch_restore": "passed",
+  "restored": {"alembic_revision": "0001", "sites": 4, "telcos": 6, "users": 0, "inspections": 0},
+  "notes": "Observed an operator-initiated host restart; agent did not reboot. At this check permanent admin setup was pending; it was completed later (see admin-account-setup.json). Off-host backup and external HTTPS/Android acceptance remain pending. No passwords or private keys are included."
+}
