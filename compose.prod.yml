@@ -1,0 +1,144 @@
+name: istay-prod
+x-logging: &logging
+  driver: json-file
+  options: {max-size: 10m, max-file: '3'}
+x-api: &api
+  image: ${API_IMAGE:?Set an immutable API image in .env.prod}
+  environment:
+    ENVIRONMENT: production
+    POSTGRES_HOST: db
+    POSTGRES_DB: ${POSTGRES_DB:?Set database}
+    POSTGRES_USER: ${POSTGRES_USER:?Set user}
+    POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    APP_ORIGIN: ${APP_ORIGIN:?Set final HTTPS origin}
+    TRUSTED_HOSTS: ${TRUSTED_HOSTS:?Set explicit hostnames}
+    SECURE_COOKIES: 'true'
+  secrets: [db_password]
+  networks: [private]
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  logging: *logging
+services:
+  db:
+    image: ${POSTGRES_IMAGE:?Set a pinned PostgreSQL 17 image digest}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set database}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:?Set separate database administrator}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_admin_password
+      APP_DB_USER: ${POSTGRES_USER:?Set application user}
+      POSTGRES_INITDB_ARGS: --data-checksums
+    secrets: [db_password, db_admin_password]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./ops/postgres/010-app-role.sh:/docker-entrypoint-initdb.d/010-app-role.sh:ro
+    networks: [private]
+    shm_size: 128mb
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging: *logging
+  migrate:
+    <<: *api
+    restart: 'no'
+    command: [alembic, upgrade, head]
+    depends_on:
+      db: {condition: service_healthy}
+  api:
+    <<: *api
+    restart: unless-stopped
+    init: true
+    depends_on:
+      db: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
+  web:
+    image: ${WEB_IMAGE:?Set an immutable frontend image}
+    restart: unless-stopped
+    # Loopback operator access only. Employees use HTTPS through Cloudflare Tunnel.
+    ports: ['127.0.0.1:8080:8080']
+    networks: [edge, private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      api: {condition: service_healthy}
+    logging: *logging
+  backup:
+    image: ${BACKUP_IMAGE:?Set a pinned backup image built from ops/backup}
+    restart: unless-stopped
+    init: true
+    environment:
+      PGHOST: db
+      PGDATABASE: ${POSTGRES_DB:?Set database}
+      PGUSER: ${POSTGRES_USER:?Set user}
+      PGPASSWORD_FILE: /run/secrets/db_password
+      RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      TZ: UTC
+    secrets: [db_password]
+    volumes:
+      - type: bind
+        source: ${BACKUP_DIR:?Set backup staging directory}
+        target: /backups
+        bind: {create_host_path: false}
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      db: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, sh, /opt/backup/health.sh]
+      interval: 5m
+      timeout: 5s
+      retries: 1
+      start_period: 5m
+    logging: *logging
+  tunnel:
+    profiles: [tunnel]
+    image: ${CLOUDFLARED_IMAGE:?Set a pinned cloudflared digest}
+    restart: unless-stopped
+    command: [tunnel, --no-autoupdate, run, --token-file, /run/secrets/tunnel_token]
+    secrets: [tunnel_token]
+    networks: [edge]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      web: {condition: service_healthy}
+    logging: *logging
+  restorecheck:
+    profiles: [operations]
+    image: ${POSTGRES_IMAGE:?Set a pinned PostgreSQL 17 image digest}
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_ADMIN_USER:?Set database administrator}
+      PGDATABASE: ${POSTGRES_DB:?Set database}
+      PGPASSWORD_FILE: /run/secrets/db_admin_password
+    secrets: [db_admin_password]
+    volumes:
+      - ${BACKUP_DIR:?Set backup directory}:/backups:ro
+      - ./ops/backup/restore-check.sh:/restore-check.sh:ro
+    entrypoint: [sh, /restore-check.sh]
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: *logging
+volumes:
+  pgdata:
+networks:
+  private: {internal: true}
+  edge:
+secrets:
+  db_password: {file: ./secrets/production/db_password.txt}
+  db_admin_password: {file: ./secrets/production/db_admin_password.txt}
+  tunnel_token: {file: ./secrets/production/tunnel_token.txt}

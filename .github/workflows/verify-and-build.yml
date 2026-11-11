@@ -1,0 +1,96 @@
+name: Verify and build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish tested commit images to GHCR (main only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Disposable CI values satisfy interpolation; tests use the separate test-db service.
+      POSTGRES_DB: istay_ci_unused
+      POSTGRES_USER: istay_ci_unused
+      POSTGRES_PASSWORD: disposable-ci-only
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7, verified 2026-11-11
+        with:
+          persist-credentials: false
+      - name: PostgreSQL migrations and backend tests
+        run: docker compose -p istay-ci -f compose.dev.yml --profile test run --build --rm tests
+      - name: Frontend tests and production build
+        run: |
+          docker build --target base -t istay-frontend-check ./frontend
+          docker run --rm istay-frontend-check pnpm test
+          docker build --target production -t istay-web-check ./frontend
+      - name: Build API and backup images
+        run: |
+          docker build -t istay-api-check ./backend
+          docker build -t istay-backup-check ./ops/backup
+      - name: Remove disposable test services
+        if: always()
+        run: docker compose -p istay-ci -f compose.dev.yml --profile test down
+
+  publish:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Pin bases, build and publish this commit
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          repo="${GITHUB_REPOSITORY,,}"
+          pin() {
+            docker pull "$1" >&2
+            docker image inspect --format '{{index .RepoDigests 0}}' "$1"
+          }
+          python_image="$(pin python:3.12-slim)"
+          node_image="$(pin node:24-alpine)"
+          nginx_image="$(pin nginxinc/nginx-unprivileged:stable-alpine)"
+          postgres_image="$(pin postgres:17-alpine)"
+          tunnel_image="$(pin cloudflare/cloudflared:latest)"
+          prefix="ghcr.io/$repo"
+          docker build --build-arg "PYTHON_IMAGE=$python_image" --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" -t "$prefix-api:$GITHUB_SHA" ./backend
+          docker build --target production --build-arg "NODE_IMAGE=$node_image" --build-arg "NGINX_IMAGE=$nginx_image" --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" -t "$prefix-web:$GITHUB_SHA" ./frontend
+          docker build --build-arg "POSTGRES_IMAGE=$postgres_image" --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" -t "$prefix-backup:$GITHUB_SHA" ./ops/backup
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null 2>&1' EXIT
+          for service in api web backup; do
+            docker push "$prefix-$service:$GITHUB_SHA"
+          done
+          {
+            echo '### Production image references (no host deployment performed)'
+            echo '```'
+            for service in api web backup; do
+              digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$prefix-$service:$GITHUB_SHA")"
+              printf '%s_IMAGE=%s\n' "${service^^}" "$digest"
+            done
+            printf 'POSTGRES_IMAGE=%s\nCLOUDFLARED_IMAGE=%s\n' "$postgres_image" "$tunnel_image"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,42 @@
+{
+  "inspection_count": 2,
+  "distinct_client_ids": 2,
+  "records": [
+    {
+      "server_id": 1,
+      "client_id": "d90ea3a3-ac70-4c55-963f-99dc66bc4720",
+      "outcome": "NO_SIGNAL",
+      "owner_id": 2
+    },
+    {
+      "server_id": 2,
+      "client_id": "37ae3400-ad5a-429b-a496-6d3d473a02fe",
+      "outcome": "NO_INTERNET",
+      "owner_id": 2
+    }
+  ],
+  "measurement_count": 0,
+  "report_summary": {
+    "total": 3,
+    "inspected": 2,
+    "pending": 1,
+    "tested": 0,
+    "no_signal": 1,
+    "no_internet": 1,
+    "completion_percent": 66.67,
+    "speedtest_success_percent": 0.0,
+    "issue_percent_of_inspected": 100.0,
+    "skipped_attempts": 0,
+    "failed_attempts": 0,
+    "attempt_count": 2
+  },
+  "xlsx_sheets": [
+    "Summary",
+    "Telco Comparison",
+    "Latest Results",
+    "No Signal-No Internet",
+    "Pending Targets",
+    "All Attempts"
+  ],
+  "notes": "Synthetic desktop browser records; server-outage simulation, not Android airplane-mode or real SIM validation."
+}

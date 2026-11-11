@@ -1,0 +1,13 @@
+{
+  "POSTGRES_IMAGE": "postgres@sha256:e5d2edd28b1f8d40a0a6c0c9cdc545b19b56a0d5d88f94bc11a97d970d4700d0",
+  "API_IMAGE": "istay-api:phase5-local-20261111",
+  "WEB_IMAGE": "istay-web:phase5-local-20261111",
+  "BACKUP_IMAGE": "istay-backup:phase5-local-20261111",
+  "CLOUDFLARED_IMAGE": "cloudflare/cloudflared@sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba",
+  "bases": {
+    "python": "python@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b",
+    "node": "node@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+    "nginx": "nginxinc/nginx-unprivileged@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03"
+  },
+  "createdUtc": "2026-11-11T13:19:17.5141067Z"
+}

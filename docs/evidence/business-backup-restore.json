@@ -1,0 +1,35 @@
+{
+  "backup": "istay-20261111T134751Z.dump",
+  "scratch_restore_verified": true,
+  "record": {
+    "client_id": "cbce7bb1-ced5-47d0-86c6-5f2059ebdbd2",
+    "payload_hash": "1bdd703d0f513d0a341ba2439083108c0287325f80786de56ad130c4756a8ade",
+    "outcome": "TESTED",
+    "user_id": 3,
+    "target_id": 1,
+    "measurement": {
+      "download_mbps": 35.8,
+      "upload_mbps": 12.5,
+      "ping_ms": 28.4,
+      "engine_version": "synthetic-restore",
+      "profile_version": "mobile-v1"
+    },
+    "snapshot": {
+      "room": "Synthetic living room",
+      "site": "IP1",
+      "unit": "SYNTHETIC-RESTORE",
+      "block": "RESTORE-9da01ba6",
+      "floor": 1,
+      "telco": "CelcomDigi",
+      "site_id": 1,
+      "unit_id": 1,
+      "block_id": 1,
+      "floor_id": 1,
+      "telco_id": 1,
+      "room_code": "L",
+      "location_id": 1
+    },
+    "audit_status": "COMPLETED"
+  },
+  "notes": "Synthetic data only; disabled fixture account; live DB not overwritten. This is a same-host restore, not off-host recovery."
+}

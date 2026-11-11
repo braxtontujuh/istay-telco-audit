@@ -1,0 +1,17 @@
+.env*
+!.env*.example
+.venv/
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.db
+secrets/
+backups/
+test-results/
+playwright-report/
+.tools/
+*.egg-info/
+.deployment.json
+logs/

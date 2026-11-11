@@ -1,0 +1,13 @@
+.git
+.venv
+**/node_modules
+**/.tools
+**/__pycache__
+**/.pytest_cache
+**/dist
+**/*.egg-info
+**/*.db
+.env*
+secrets
+backups
+test-results
