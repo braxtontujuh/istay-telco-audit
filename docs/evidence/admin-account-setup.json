@@ -1,0 +1,13 @@
+{
+  "verified_local_date": "2026-11-12",
+  "project": "istay-prod",
+  "account": {"username": "admin", "role": "ADMIN", "active": true},
+  "credential_entry": "operator entered and confirmed privately in interactive terminal",
+  "password_or_hash_read_by_agent": false,
+  "backup": "istay-20261111T233018Z.dump",
+  "checksum_and_scratch_restore": "passed",
+  "restored": {"alembic_revision": "0001", "sites": 4, "telcos": 6, "users": 1, "inspections": 0},
+  "services_healthy": ["api", "backup", "db", "web"],
+  "startup_task_last_result": 0,
+  "notes": "Account existence/role/active status and same-host backup restore verified. External HTTPS, real Android/SIM acceptance, off-host recovery and GitHub publication remain pending."
+}

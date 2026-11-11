@@ -24,6 +24,7 @@ Updated: 2026-11-12, Asia/Kuala_Lumpur. **Not a completed deployment.**
 | Container process recovery | Passed: killed only rehearsal uvicorn process; Docker restart count increased and verified HTTPS liveness recovered automatically |
 | Windows startup and observed host restart | Approved IStay-Production-AtLogon registered in nonsynced directory with Limited/Interactive logon, no tunnel. Native CMD launcher avoids Restricted .ps1 execution without changing policy. Manual run passed; later observed host boot 2026-11-11 23:44:42.5 and task run 23:44:55, result 0. On Nov 12 all four services healthy, original istay-prod_pgdata retained four sites/six telcos, post-boot CA-verified HTTPS auth/CSRF/logout passed. Agent did not initiate reboot. Evidence docs/evidence/local-host-recovery.json |
 | Nonsynced production staging | Approved and created C:\Users\braxt\IStayTelcoAudit with restricted ACL, new independent DB credentials and istay-prod_pgdata. Local-only TLS 8444, production Secure cookies; CA-verified login/readiness, restart/recreation persistence, CSRF/logout passed with a disposable account. Final Cloudflare origin remains deferred; no browser trust installed |
+| Permanent administrator | Passed: operator completed private password entry for admin on Nov 12. Live database confirms role ADMIN, active=True, one user total. New backup istay-20261111T233018Z.dump passed checksum/scratch restore with one user, four sites and six telcos. No password or hash read/printed by agent. Evidence docs/evidence/admin-account-setup.json |
 | Browser visual verification | Passed in attached in-app desktop browser after native Brave access had timed out. Login/audit/target/queue screens exercised; 375px mobile viewport had no horizontal overflow. Screenshot docs/evidence/phase3-sync-mobile.png. This is not Android device verification |
 | External HTTPS/Android access | Blocked: no Cloudflare account/domain/tunnel configured |
 | Desktop cached PWA outage/reconnect | Passed: stopped only isolated istay-browser-test web/API; captured synthetic NO_SIGNAL, refreshed cached shell, locked/switch accounts, closed audit before sync -> retained CONFLICT; manager reopened -> ACK record 1; retries did not duplicate. Updated PWA safely, closed old tab, launched fresh cached tab while services stopped, saved NO_INTERNET, restarted services -> ACK record 2. DB has two unique UUIDs, no speed measurements. Evidence docs/evidence/phase4-browser-database.json |
@@ -39,7 +40,7 @@ Updated: 2026-11-12, Asia/Kuala_Lumpur. **Not a completed deployment.**
 
 ## Next acceptance work (do not mark passed without evidence)
 
-- Create permanent administrator interactively; complete normal Ubuntu user setup and review Docker licensing.
+- Permanent production-staging administrator is created; complete normal Ubuntu user setup and review Docker licensing as applicable.
 - Complete real Android/SIM acceptance; final local browser report/filter/download checks have passed.
 - Run the prepared CI in GitHub after source review/publication; local test/build passes do not prove remote workflow execution.
 - Move actual production source/secrets to an approved nonsynced location before employee use; pinned rehearsal release manifests are under releases/.

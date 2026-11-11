@@ -12,5 +12,5 @@
   "scheduled_backup_completed_local": "2026-11-12T03:00:30+08:00",
   "scheduled_backup_checksum_and_scratch_restore": "passed",
   "restored": {"alembic_revision": "0001", "sites": 4, "telcos": 6, "users": 0, "inspections": 0},
-  "notes": "Observed an operator-initiated host restart; agent did not reboot. Permanent admin setup, off-host backup and external HTTPS/Android acceptance remain pending. No passwords or private keys are included."
+  "notes": "Observed an operator-initiated host restart; agent did not reboot. At this check permanent admin setup was pending; it was completed later (see admin-account-setup.json). Off-host backup and external HTTPS/Android acceptance remain pending. No passwords or private keys are included."
 }
