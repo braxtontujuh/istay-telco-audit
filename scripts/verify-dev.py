@@ -20,6 +20,9 @@ DOCKER = shutil.which("docker") or str(
 parser = argparse.ArgumentParser()
 parser.add_argument("--rehearsal", action="store_true")
 parser.add_argument("--local-staging-root", type=Path)
+parser.add_argument(
+    "--smoke-only", action="store_true", help="Verify auth/CSRF/logout without restarting containers"
+)
 args = parser.parse_args()
 if args.rehearsal and args.local_staging_root:
     parser.error("Choose rehearsal or local production staging, not both")
@@ -171,10 +174,15 @@ def main():
             assert len(client.get("/api/v1/sites").json()) >= 4
             wait_ready(client)
             print("PASS: localhost UI/API, session login and authenticated readiness", flush=True)
-            for command, label in (
-                (["restart", "db", "api"], "restart"),
-                (["up", "-d", "--force-recreate", "db", "api"], "container recreation"),
-            ):
+            restart_checks = (
+                ()
+                if args.smoke_only
+                else (
+                    (["restart", "db", "api"], "restart"),
+                    (["up", "-d", "--force-recreate", "db", "api"], "container recreation"),
+                )
+            )
+            for command, label in restart_checks:
                 subprocess.run(COMPOSE + command, cwd=ROOT, check=True)
                 wait_ready(client)
                 run_python(CHECK)
