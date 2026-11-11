@@ -8,6 +8,8 @@ See [PLAN.md](PLAN.md), [application workflow](docs/APPLICATION.md), [host inspe
 
 Cloudflare is currently deferred by the operator. Approved nonsynced local production staging and its tested logon task are described in [LOCAL-STAGING.md](docs/LOCAL-STAGING.md). Off-host storage is not yet available, so disk-loss recovery and off-host alerting are not claimed.
 
+The implementation is merged into main and the [GHCR publication run](https://github.com/braxtontujuh/istay-telco-audit/actions/runs/43122556416) passed. Published API/web/backup images were pulled and checked by digest; references are recorded in [the release manifest](releases/ghcr-9b37796bc4a7.json). This did not replace the running HP release or enable external access.
+
 ## Development (after WSL2 and Docker Desktop work)
 
 Run from this repository in PowerShell:

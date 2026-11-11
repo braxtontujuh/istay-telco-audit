@@ -1,0 +1,17 @@
+{
+  "checked_local_date": "2026-11-12",
+  "frontend": {
+    "method": "pnpm audit --prod --json against locked frontend dependencies",
+    "production_and_optional_dependencies": 17,
+    "reported_advisories": {"info": 0, "low": 0, "moderate": 0, "high": 0, "critical": 0}
+  },
+  "backend": {
+    "method": "PyPI release-specific JSON vulnerability metadata for each exact requirements.lock pin",
+    "packages_checked": 29,
+    "query_errors": 0,
+    "reported_advisories": 0,
+    "yanked_releases": 0,
+    "api_reference": "https://docs.pypi.org/api/json/"
+  },
+  "scope": "Point-in-time production dependency metadata check. Does not cover operating-system packages, unpublished issues or a full application penetration test. No packages were upgraded and HP runtime was not changed."
+}

@@ -10,6 +10,17 @@
   "frontend_tests": 20,
   "verification_result": "success",
   "production_pwa_api_backup_image_builds": "success",
-  "ghcr_publication": "pending operator approval",
+  "merged_commit": "9b37796bc4a7be66ee5521edb28ca6a3f2345bb9",
+  "final_pull_request_run": "https://github.com/braxtontujuh/istay-telco-audit/actions/runs/43121799273",
+  "ghcr_publication": {
+    "result": "success",
+    "run": "https://github.com/braxtontujuh/istay-telco-audit/actions/runs/43122556416",
+    "source_commit": "9b37796bc4a7be66ee5521edb28ca6a3f2345bb9",
+    "manifest": "releases/ghcr-9b37796bc4a7.json",
+    "all_three_images_pulled_by_digest": true,
+    "platform": "linux/amd64",
+    "isolated_readonly_checks": "API OpenAPI sync/export contracts, nginx config/PWA assets, backup scripts and PostgreSQL 17 tooling passed with no network or host database access",
+    "hp_runtime_updated": false
+  },
   "notes": "GitHub connector write access remains unavailable; operator-authorized Git Credential Manager session was used. No runtime credentials, database dumps or private keys were uploaded. This workflow did not deploy to the HP or enable Cloudflare."
 }

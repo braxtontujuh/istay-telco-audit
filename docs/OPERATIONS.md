@@ -33,6 +33,8 @@ The script pins PostgreSQL 17, Python, Node, nginx and cloudflared base referenc
 
 Set `APP_ORIGIN=https://<real-domain>` with no trailing slash; set explicit `TRUSTED_HOSTS` and a real backup staging directory that already exists. Ensure app/admin database usernames differ. Do not commit credentials or fill placeholders into a client build. The production frontend always calls same-origin `/api/v1`.
 
+A verified GHCR release is now recorded in `releases/ghcr-9b37796bc4a7.json`, built from main commit 9b37796bc4a7be66ee5521edb28ca6a3f2345bb9. Remote tests/publication and digest-based pull/artifact checks passed. Do not substitute these references into the running environment merely because publication succeeded: the current HP still uses its tested local release. Apply a candidate only through backup/migration/healthcheck/rollback procedures when the final origin is configured. A fresh host may require private-package read credentials; no registry credential belongs in frontend configuration or Git.
+
 ```powershell
 docker compose --env-file .env.prod -f compose.prod.yml config --quiet
 docker compose --env-file .env.prod -f compose.prod.yml up -d db
@@ -100,6 +102,6 @@ For real disaster recovery, stop application writers, preserve the damaged volum
 3. Start the new API/web images and run authenticated readiness and acceptance checks. Preserve prior images and backups.
 4. For a compatible code-only rollback, restore previous API/web refs in `.env.prod` and recreate those services. A destructive/incompatible migration needs a separately approved data restore plan; old code is not guaranteed to work on a new schema.
 
-`restart: unless-stopped` handles process exits and engine restart after Docker returns. It respects manually stopped containers, does not restart unhealthy processes automatically, and cannot recover when the PC is asleep/off or Docker Desktop cannot start. Review and explicitly approve `Install-RecoveryTask.ps1` only after the real deployment works; it registers a current-user **logon** task, not an always-running pre-login Windows server. No recovery task, power setting, inbound firewall rule or router port forward has been installed.
+`restart: unless-stopped` handles process exits and engine restart after Docker returns. It respects manually stopped containers, does not restart unhealthy processes automatically, and cannot recover while the PC is asleep/off. The operator-approved `IStay-Production-AtLogon` task is installed for localhost-only staging; manual invocation and an observed reboot/logon passed. It runs with the current user's Limited/Interactive logon and does not provide availability before Windows sign-in. Switching it to the final origin/tunnel remains part of Cloudflare rollout. No power setting, inbound firewall rule or router port forward was changed. See LOCAL-STAGING.md for the native CMD launcher and verified task details.
 
 Logs are rotated (three 10 MB files per service) and API access logs are disabled to avoid logging sensitive requests. Inspect restricted diagnostics for failures; do not publish logs containing tokens or personal data.
