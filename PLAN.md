@@ -8,7 +8,7 @@ Implement sequentially, validating each phase before describing it as complete:
 - [x] Phase 2: dynamic layouts, scoped audit workflow, target snapshots/assignment and mobile navigation; PostgreSQL workflow tests passed.
 - [x] Phase 3 implementation and desktop browser acceptance: cached relaunch after tab closure, user-scoped IndexedDB, offline capture, immutable outbox, independent ACK/idempotency/conflicts, account isolation and manager resolution. Android install/airplane-mode acceptance remains outstanding.
 - [ ] Phase 4 final acceptance: pinned SDK 1.17.0, bounded/cancellable tests, metric validation, interrupted-attempt recovery and mocks implemented/tested; real Android SIM test outstanding.
-- [ ] Phase 5 final acceptance: dashboard/coverage, scoped reports, six-sheet Excel and optional GHCR build workflow implemented; GitHub execution, external deployment and final device/operational gates outstanding.
+- [ ] Phase 5 final acceptance: dashboard/coverage, scoped reports, six-sheet Excel and GHCR workflow implemented; GitHub push/PR verification passed. Main/GHCR promotion decision, external deployment and final device/off-host gates remain outstanding.
 
 Operational work:
 - [x] Inspect host and upstream without changing settings.

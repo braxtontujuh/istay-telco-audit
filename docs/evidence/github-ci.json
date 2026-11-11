@@ -1,0 +1,15 @@
+{
+  "verified_local_date": "2026-11-12",
+  "repository": "braxtontujuh/istay-telco-audit",
+  "branch": "codex/windows-local-deployment",
+  "tested_commit": "1a245a70c6ba7355915307de07fba0f5030014de",
+  "pull_request": "https://github.com/braxtontujuh/istay-telco-audit/pull/1",
+  "push_run": "https://github.com/braxtontujuh/istay-telco-audit/actions/runs/43120966738",
+  "pull_request_run": "https://github.com/braxtontujuh/istay-telco-audit/actions/runs/43121293918",
+  "backend_tests": 44,
+  "frontend_tests": 20,
+  "verification_result": "success",
+  "production_pwa_api_backup_image_builds": "success",
+  "ghcr_publication": "pending operator approval",
+  "notes": "GitHub connector write access remains unavailable; operator-authorized Git Credential Manager session was used. No runtime credentials, database dumps or private keys were uploaded. This workflow did not deploy to the HP or enable Cloudflare."
+}
