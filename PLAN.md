@@ -14,7 +14,7 @@ Operational work:
 - [x] Inspect host and upstream without changing settings.
 - [x] Obtain explicit approval before WSL/Docker installation, nonsynced production staging and current-user startup task. Startup task manual run passed. No power changes or automatic reboot performed.
 - [x] Separate dev/prod Compose projects, volumes and credentials; production database has no published ports. Verified in local production rehearsal.
-- [x] Production restart policies, daily backup job, scratch restore and recovery instructions; API process-crash recovery passed. Off-host backup and Windows logon/reboot recovery remain pending.
+- [x] Production restart policies, real daily backup execution, scratch restore and recovery instructions; API process-crash recovery and observed host reboot/logon passed. Off-host backup remains pending because no destination is available.
 - [x] Prepare Cloudflare Tunnel and private-network configuration. Real account/hostname/token still required from operator.
 - [ ] Test development and production local access, authentication, restart/recreate persistence, backup restore, external HTTPS and Android offline sync.
 
