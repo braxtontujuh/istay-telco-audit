@@ -20,4 +20,4 @@ Operational work:
 
 Never equate generated configuration or passing static checks with a completed deployment.
 
-Current verification: 39 PostgreSQL tests and 20 frontend tests passed, TypeScript/PWA production build passed. Synthetic desktop browser records synchronized exactly once; reports and Excel matched database counts. Local authentication, Secure-cookie HTTPS rehearsal, CSRF/logout, restart/recreation persistence, backup restore and process-crash recovery passed. Rehearsal uses separate data and localhost-only certificates, not Cloudflare. No employee deployment is claimed.
+Current verification: 44 PostgreSQL/Linux tests and 20 frontend tests passed, TypeScript/PWA production build passed. Synthetic desktop browser records synchronized exactly once; reports and Excel matched database counts. Local authentication, Secure-cookie HTTPS rehearsal, CSRF/logout, restart/recreation persistence, business-data backup restore and process-crash recovery passed. Nonsynced local production staging and approved logon-task manual execution passed. Rehearsal/staging use localhost-only certificates, not Cloudflare. No employee deployment is claimed.

@@ -5,6 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 COPY backend/requirements.lock ./requirements.lock
 RUN pip install --no-cache-dir -r requirements.lock pytest==9.2.0 httpx==0.28.1 pyyaml==6.0.3
 COPY backend ./backend
+COPY ops/backup/schedule.sh ./ops/backup/schedule.sh
 COPY compose.dev.yml compose.prod.yml ./
 ENV PYTHONPATH=/project/backend
 CMD ["python", "-m", "pytest", "backend/tests", "-q", "-p", "no:cacheprovider"]

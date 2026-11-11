@@ -9,7 +9,7 @@ Date: 2026-11-11, Asia/Kuala_Lumpur. **Not a completed deployment.**
 | WSL installation | Passed: WSL 3.0.5 installed after approval; no automatic reboot |
 | WSL2 + Ubuntu execution | Passed: docker-desktop and Ubuntu-24.04 listed as VERSION 2; Ubuntu uname confirms WSL2 kernel. Normal Linux user setup remains manual |
 | Docker Desktop / Compose | Passed: approved supported per-user installation, Desktop 4.99.0, Engine 29.9.3, Compose v5.7.0; Linux engine and hello-world passed |
-| Backend unit/integration tests | 39 passed against disposable PostgreSQL, no skips, 28.25 seconds. Includes dynamic layouts, snapshots, independent ACKs, concurrent UUIDs, closure/revocation, report/export scope and counts. One upstream Starlette/httpx deprecation warning |
+| Backend unit/integration tests | 44 passed against disposable PostgreSQL/Linux, no skips, 30.96 seconds. Includes dynamic layouts, snapshots, independent ACKs, concurrent UUIDs, closure/revocation, report/export scope and counts, and daily-backup scheduler clock scenarios. One upstream Starlette/httpx deprecation warning |
 | PostgreSQL-specific migrations/triggers | Passed: actual migrations, deferred TESTED/measurement pairing, non-TESTED measurement rejection, immutable history and cross-audit foreign keys |
 | Frontend type-check/build/PWA shell | Passed: TypeScript/Vite production build, 12 static precache entries (~506 KiB); 20 tests for owner isolation, atomic claims/ACKs/retries, known closure/revocation, interrupted tests, SDK unit conversion/cancellation/timeout/partial results |
 | Python lint / PowerShell syntax | Passed: ruff checks and parsing all prepared .ps1 scripts |
@@ -32,8 +32,10 @@ Date: 2026-11-11, Asia/Kuala_Lumpur. **Not a completed deployment.**
 | Real mobile SIM speed test | Not tested; requires Android mobile data, correct SIM selection, staff confirmation and HTTPS |
 | Management reports and Excel | Passed against PostgreSQL: latest-conclusive policy/counts, thresholds, issue rates, null no-service metrics, sample counts/dates, six sheets, formula-safe strings, auditor denial and manager site revocation. Browser report/telco filter/download passed; downloaded C:\Users\braxt\Downloads\istay-audit-1.xlsx reopened with six sheets and two accepted attempts. Synthetic fixture totals matched UI/JSON/Excel: 3 targets, 2 inspected, 1 pending. Screenshot docs/evidence/phase5-report-browser.png |
 | Prepared GitHub CI/GHCR | Workflow YAML parsed; official checkout action pinned by verified commit. PostgreSQL/frontend/container-build jobs and manual main-only GHCR publication prepared. No push, remote workflow run, GHCR publish or automatic HP deployment performed |
+| GitHub publication preflight | Source committed locally on codex/windows-local-deployment after checking ignored runtime paths, known local passwords, token/private-key patterns and staged whitespace. GitHub connector can read the repository but branch creation returned 403 Resource not accessible by integration. CLI has no stored Git credential; official Git Credential Manager authorization awaits operator approval. No public branch/PR or workflow run was created |
 | Off-host backup/retrieval | Blocked: no destination chosen |
 | Backup with business history | Passed: same-host dump istay-20261111T134751Z.dump restored into scratch DB with synthetic completed audit, frozen unit/room labels, accepted TESTED and NO_SIGNAL records. Exact TESTED UUID/hash/download/upload/ping/profile values verified. Synthetic bootstrap admin disabled. Evidence docs/evidence/business-backup-restore.json |
+| Daily scheduler behavior | Five Linux tests exercise the actual schedule.sh with controlled clock/processes: initial backup, 19:00 UTC boundary, catch-up after missed job, no duplicate at UTC midnight and retry after failed dump. Passed. Real 03:00 MYT scheduled execution remains to be observed |
 
 ## Next acceptance work (do not mark passed without evidence)
 
