@@ -1,0 +1,15 @@
+{
+  "WEB_IMAGE": "istay-web:phase5-pwa-mime-20261112a",
+  "web_image_id": "sha256:91f83203654a8a4759deecd45b342b5d7281c536c330359a9b02f7c687507c5c",
+  "base_web_image": "istay-web:phase5-local-20261111",
+  "base_web_manifest_digest": "sha256:c55a36bd90c3a8ca7dc21177caa9f24c0c3316cd6d27b578b987a4d4927705f2",
+  "change": "Nginx serves manifest.webmanifest as application/manifest+json",
+  "recipe": "docker build -f ops/web-manifest.Dockerfile -t <new-unique-web-release> ./frontend",
+  "static_files_compared": 12,
+  "all_static_files_byte_identical_to_base": true,
+  "isolated_nginx_and_http_checks": "passed",
+  "deployed_after_operator_approval": true,
+  "external_https_manifest_check": "passed",
+  "api_database_backup_images_changed": false,
+  "published_to_ghcr": false
+}

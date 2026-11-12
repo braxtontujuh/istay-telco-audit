@@ -1,4 +1,4 @@
-"""Verify real localhost auth and restart/recreate persistence using disposable development data."""
+"""Verify the selected deployment's auth and persistence using a temporary account/probe."""
 
 import argparse
 import json
@@ -9,6 +9,7 @@ import ssl
 import subprocess
 import time
 from pathlib import Path
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 import httpx
@@ -21,11 +22,19 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--rehearsal", action="store_true")
 parser.add_argument("--local-staging-root", type=Path)
 parser.add_argument(
-    "--smoke-only", action="store_true", help="Verify auth/CSRF/logout without restarting containers"
+    "--production-root", type=Path, help="Verify the configured external HTTPS origin"
+)
+parser.add_argument(
+    "--smoke-only",
+    action="store_true",
+    help="Verify auth/CSRF/logout without restarting containers",
 )
 args = parser.parse_args()
-if args.rehearsal and args.local_staging_root:
-    parser.error("Choose rehearsal or local production staging, not both")
+if (
+    sum(bool(value) for value in (args.rehearsal, args.local_staging_root, args.production_root))
+    > 1
+):
+    parser.error("Choose one deployment environment")
 COMPOSE = (
     [
         DOCKER,
@@ -63,6 +72,47 @@ if args.local_staging_root:
     ]
     ORIGIN = "https://localhost:8444"
     SAFE_ENVIRONMENT = "settings().environment=='production' and settings().postgres_db=='istay' and settings().app_origin=='https://localhost:8444'"
+if args.production_root:
+    ROOT = args.production_root.resolve()
+    metadata = json.loads((ROOT / ".deployment.json").read_text(encoding="utf-8-sig"))
+    if metadata["mode"] != "Cloudflare" or Path(metadata["directory"]).resolve() != ROOT:
+        raise RuntimeError("Only an explicitly activated Cloudflare deployment may be verified")
+    origins = [
+        line.partition("=")[2].strip()
+        for line in (ROOT / ".env.prod").read_text(encoding="utf-8-sig").splitlines()
+        if line.startswith("APP_ORIGIN=")
+    ]
+    if len(origins) != 1:
+        raise RuntimeError("Expected one configured production origin")
+    ORIGIN = origins[0]
+    origin_url = urlsplit(ORIGIN)
+    if (
+        origin_url.scheme != "https"
+        or origin_url.hostname != "network.mrbraxton.net"
+        or origin_url.port is not None
+        or origin_url.path
+        or origin_url.query
+        or origin_url.fragment
+        or origin_url.username
+        or origin_url.password
+    ):
+        raise RuntimeError("Expected the operator-approved external HTTPS origin")
+    COMPOSE = [
+        DOCKER,
+        "compose",
+        "-p",
+        "istay-prod",
+        "--env-file",
+        ".env.prod",
+        "-f",
+        "compose.prod.yml",
+        "--profile",
+        "tunnel",
+    ]
+    SAFE_ENVIRONMENT = (
+        "settings().environment=='production' and settings().postgres_db=='istay' "
+        f"and settings().app_origin=={ORIGIN!r}"
+    )
 username = "envcheck_" + uuid4().hex
 password = secrets.token_urlsafe(32)
 probe = uuid4().hex
@@ -74,7 +124,7 @@ from app.config import settings
 from app.db import engine
 from app.models import User, AppSetting
 from app.security import hasher
-assert SAFE_ENVIRONMENT, 'Disposable dev/rehearsal database only'
+assert SAFE_ENVIRONMENT, 'Explicitly selected verification environment only'
 data = json.load(sys.stdin)
 with Session(engine()) as db:
     db.add(User(username=data['username'],full_name='Temporary environment check',role='ADMIN',password_hash=hasher.hash(data['password'])))
@@ -118,7 +168,8 @@ with Session(engine()) as db:
 
 def run_python(code):
     subprocess.run(
-        COMPOSE + ["exec", "-T", "api", "python", "-c", code.replace("SAFE_ENVIRONMENT", SAFE_ENVIRONMENT)],
+        COMPOSE
+        + ["exec", "-T", "api", "python", "-c", code.replace("SAFE_ENVIRONMENT", SAFE_ENVIRONMENT)],
         cwd=ROOT,
         input=json.dumps({"username": username, "password": password, "probe": probe}),
         text=True,
@@ -159,6 +210,15 @@ def main():
         assert client.get("/").status_code == 200
         assert client.get("/api/v1/health/live").json() == {"status": "ok"}
         assert client.get("/api/v1/auth/me").status_code == 401
+        if args.production_root:
+            manifest = client.get("/manifest.webmanifest")
+            assert manifest.status_code == 200
+            assert manifest.headers["content-type"].split(";")[0] == "application/manifest+json"
+            assert manifest.json()["start_url"] == "/app"
+            assert manifest.json()["scope"] == "/"
+            service_worker = client.get("/sw.js")
+            assert service_worker.status_code == 200
+            assert "no-cache" in service_worker.headers.get("cache-control", "")
         run_python(BOOTSTRAP)
         try:
             response = client.post(
@@ -167,13 +227,16 @@ def main():
                 headers={"Origin": ORIGIN},
             )
             assert response.status_code == 200, f"Login failed: {response.status_code}"
-            if args.rehearsal or args.local_staging_root:
+            if args.rehearsal or args.local_staging_root or args.production_root:
                 assert "Secure" in response.headers["set-cookie"]
                 assert "HttpOnly" in response.headers["set-cookie"]
+            if args.production_root:
+                assert "no-store" in response.headers.get("cache-control", "")
+                assert response.headers.get("cf-cache-status", "").upper() not in ("HIT", "STALE")
             csrf = response.json()["csrf_token"]
             assert len(client.get("/api/v1/sites").json()) >= 4
             wait_ready(client)
-            print("PASS: localhost UI/API, session login and authenticated readiness", flush=True)
+            print("PASS: UI/API, session login and authenticated readiness", flush=True)
             restart_checks = (
                 ()
                 if args.smoke_only
@@ -189,13 +252,15 @@ def main():
                 print(f"PASS: database record and session persisted after {label}", flush=True)
             denied = client.post("/api/v1/auth/logout", headers={"Origin": ORIGIN})
             assert denied.status_code == 403
-            response = client.post("/api/v1/auth/logout", headers={"Origin": ORIGIN, "X-CSRF-Token": csrf})
+            response = client.post(
+                "/api/v1/auth/logout", headers={"Origin": ORIGIN, "X-CSRF-Token": csrf}
+            )
             assert response.status_code == 204
             assert client.get("/api/v1/auth/me").status_code == 401
             print("PASS: CSRF rejection and server-side logout/revocation", flush=True)
         finally:
             run_python(CLEANUP)
-            print("Temporary development verification account/probe cleaned up", flush=True)
+            print("Temporary verification account/probe cleaned up", flush=True)
 
 
 if __name__ == "__main__":
