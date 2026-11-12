@@ -1,6 +1,6 @@
 # Nonsynced local production staging
 
-Cloudflare setup is deliberately deferred by the operator. This phase prepares the production data/services without claiming external deployment or browser-trusted HTTPS.
+**Historical staging record.** On 2026-11-12 this deployment was promoted, with approval, to `https://network.mrbraxton.net` and `Start-Production.cmd --tunnel`. Current public access, final-task results and remaining phone/off-host gates are documented in [CLOUDFLARE.md](CLOUDFLARE.md). The paragraphs below describe the earlier localhost-only phase; its environment/TLS overlay remain for deliberate rollback.
 
 On 2026-11-11 the operator approved creating `C:\Users\braxt\IStayTelcoAudit` and registering a current-user logon task after tests passed. Source was copied there without `.git`, workspace runtime configurations, test passwords, database files or backups. New independent app/admin database passwords were generated in that folder. Its DACL permits the owning Windows user, SYSTEM and Administrators; inherited broad read access was removed. Source/development remains in the original workspace.
 
@@ -32,4 +32,4 @@ The new staged database itself was dumped/restored successfully as `istay-202611
 
 Before enabling external production: preserve `istay-prod_pgdata`, take/verify a backup, set the real origin/hosts and tunnel token in the nonsynced directory, switch to `.env.prod` without the local TLS overlay, update the approved recovery task to final production mode, then perform Android external HTTPS/auth/PWA/SIM acceptance. Do not create a new project/volume and accidentally abandon the staged admin/data. Rehearsal certificates are never promoted to the public domain.
 
-`Start-Production.cmd [--tunnel]` is prepared as the native final launcher for hosts that restrict .ps1 execution. It refuses the placeholder HTTPS origin before starting anything. It has not been used to enable public access; Cloudflare remains deferred.
+`Start-Production.cmd [--tunnel]` is the native final launcher for hosts that restrict .ps1 execution. It refuses a placeholder HTTPS origin before starting anything. It is now used by the approved final logon task; the localhost-only launcher is retained for a deliberate rollback.
